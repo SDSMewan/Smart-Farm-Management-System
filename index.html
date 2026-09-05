@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SFMS · Dashboard</title>
+<!-- Chart.js Library Import -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root{
+    --ink:#1B1F23;
+    --paper:#F7F7F5;
+    --line:#E3E1DC;
+    --accent:#3E6259;
+    --accent-soft:#E7EFEC;
+    --muted:#6B6F76;
+    --muted-dim:#A0A4AB;
+    --warm:#C4622D;
+    --warm-soft:#F7E9E0;
+    --cool:#2B6CB0;
+    --cool-soft:#E3EDF7;
+    --panel:#FFFFFF;
+    --text:#1B1F23;
+    --ok:#2e7d32;
+    --bad:#c62828;
+
+    /* Card Chart Colors */
+    --t1:#C4622D;
+    --t2:#2B6CB0;
+    --t3:#3E6259;
+    --t4:#D97706;
+    --h1:#2563EB;
+    --h2:#059669;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    color:var(--ink);
+  }
+  .brand span{color:var(--accent);}
+  .nav-links{
+    display:flex;
+    gap:6px;
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .nav-links li a{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 16px;
+    border-radius:8px;
+    text-decoration:none;
+    color:var(--muted);
+    font-size:15px;
+    font-weight:500;
+  }
+  .nav-links li a.active{
+    background:var(--accent);
+    color:#fff;
+  }
+  .nav-links li a svg{
+    width:17px;
+    height:17px;
+    stroke:currentColor;
+  }
+
+  .monitor{
+    padding:32px 32px 0 32px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  .page-header{
+    margin-bottom:22px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .page-header .heading h1{
+    font-size:21px;
+    font-weight:700;
+    margin:0 0 4px 0;
+    letter-spacing:-0.02em;
+  }
+  .page-header .heading p{
+    margin:0;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .page-header .updated{
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .page-header .updated .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:18px;
+  }
+  .card-grid.two-cols{
+    grid-template-columns:repeat(2, 1fr);
+  }
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:box-shadow .18s ease, transform .18s ease;
+  }
+  .card:hover{
+    box-shadow:0 8px 20px -8px rgba(27,31,35,0.15);
+    transform:translateY(-2px);
+  }
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .card-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .card-zone{
+    display:block;
+    font-size:11px;
+    font-weight:500;
+    color:var(--muted);
+    opacity:0.75;
+    margin-top:2px;
+  }
+  .icon-badge{
+    width:34px;
+    height:34px;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .icon-badge svg{ width:18px; height:18px; stroke-width:2; }
+  .icon-badge.warm{background:var(--warm-soft);}
+  .icon-badge.warm svg{stroke:var(--warm);}
+  .icon-badge.cool{background:var(--cool-soft);}
+  .icon-badge.cool svg{stroke:var(--cool);}
+  .icon-badge.accent{background:var(--accent-soft);}
+  .icon-badge.accent svg{stroke:var(--accent);}
+  
+  .card-value{
+    font-size:32px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    line-height:1;
+  }
+  .card-value .unit{
+    font-size:16px;
+    font-weight:500;
+    color:var(--muted);
+    margin-left:2px;
+  }
+
+  .status-bar{
+    height:5px;
+    border-radius:4px;
+    background:#EEEDE9;
+    overflow:hidden;
+  }
+  .status-bar-fill{
+    height:100%;
+    border-radius:4px;
+    transition: width 0.4s ease;
+  }
+
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:32px 32px 60px;
+  }
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:28px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--line);
+  }
+  header .titles h1{
+    font-size:21px;
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  header .titles p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .live-block{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .date-input{
+    padding:6px 12px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:inherit;
+    font-size:13px;
+    color:var(--ink);
+    background:#fff;
+    outline:none;
+  }
+  .date-input:focus{
+    border-color:var(--accent);
+  }
+  .live-pill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .live-pill .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--muted-dim);
+  }
+  .live-pill.on .dot{
+    background:var(--ok);
+    box-shadow:0 0 0 3px rgba(88,192,138,0.15);
+  }
+  .live-pill.off .dot{ background:var(--bad); }
+  
+  button#refreshBtn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  button#refreshBtn:hover{
+    border-color:var(--muted-dim);
+    color:var(--text);
+  }
+
+  .section-label{
+    font-size:16px;
+    font-weight:600;
+    color:var(--text);
+    margin:30px 0 14px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px;
+  }
+
+  .chart-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--card-accent, var(--muted-dim));
+    border-radius:12px;
+    padding:18px;
+  }
+  .chart-card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:6px;
+  }
+  .chart-card-head .label{
+    font-size:14px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .chart-card-head .val{
+    font-size:24px;
+    font-weight:700;
+  }
+  .chart-card-head .unit{
+    font-size:13px;
+    color:var(--muted);
+  }
+  .chart-container{
+    position:relative;
+    height:200px;
+    width:100%;
+    margin-top:10px;
+  }
+
+  @media (max-width:900px){
+    .card-grid{grid-template-columns:repeat(2, 1fr);}
+    .grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:520px){
+    .monitor, .wrap{padding:18px;}
+    .card-grid{grid-template-columns:1fr; gap:12px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    Smart Farm Management <span>System</span>
+  </div>
+  <ul class="nav-links">
+    <li>
+      <a href="#" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span>Dashboard</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- Live Temperature Overview -->
+<div class="monitor">
+  <div class="page-header">
+    <div class="heading">
+      <h1>Temperature Overview</h1>
+      <p>Readings across SFMS connected sensors</p>
+    </div>
+    <div class="updated"><span class="dot"></span><span class="last-updated">Waiting for data...</span></div>
+  </div>
+
+  <div class="card-grid">
+    <!-- DS18B20 - 1 -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DS18B20 Sensor 01<span class="card-zone">Soil/Water 1</span></span>
+        <div class="icon-badge warm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="ds1_val">--<span class="unit">°C</span></div>
+    </div>
+
+    <!-- DS18B20 - 2 -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DS18B20 Sensor 02<span class="card-zone">Soil/Water 2</span></span>
+        <div class="icon-badge cool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="ds2_val">--<span class="unit">°C</span></div>
+    </div>
+
+    <!-- DHT11 - 1 Temp -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DHT11 Sensor 01<span class="card-zone">Air Temp 1</span></span>
+        <div class="icon-badge warm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="dht1_t_val">--<span class="unit">°C</span></div>
+    </div>
+
+    <!-- DHT11 - 2 Temp -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DHT11 Sensor 02<span class="card-zone">Air Temp 2</span></span>
+        <div class="icon-badge accent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="dht2_t_val">--<span class="unit">°C</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Humidity Overview -->
+<div class="monitor">
+  <div class="page-header">
+    <div class="heading">
+      <h1>Humidity Overview</h1>
+      <p>Relative humidity levels</p>
+    </div>
+  </div>
+
+  <div class="card-grid two-cols">
+    <!-- DHT11 - 1 Hum -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DHT11 Humidity 01<span class="card-zone">Zone A</span></span>
+        <div class="icon-badge cool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5s6 7 6 11.5a6 6 0 0 1-12 0c0-4.5 6-11.5 6-11.5Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="dht1_h_val">--<span class="unit">%</span></div>
+      <div class="status-bar">
+        <div class="status-bar-fill" id="humBar1" style="width:0%; background:var(--cool);"></div>
+      </div>
+    </div>
+
+    <!-- DHT11 - 2 Hum -->
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">DHT11 Humidity 02<span class="card-zone">Zone B</span></span>
+        <div class="icon-badge cool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5s6 7 6 11.5a6 6 0 0 1-12 0c0-4.5 6-11.5 6-11.5Z"/></svg>
+        </div>
+      </div>
+      <div class="card-value" id="dht2_h_val">--<span class="unit">%</span></div>
+      <div class="status-bar">
+        <div class="status-bar-fill" id="humBar2" style="width:0%; background:var(--cool);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Time Series Analytics Section -->
+<div class="wrap">
+  <header>
+    <div class="titles">
+      <h1>Sensor Network Analytics</h1>
+      <p>Filter data by specific date</p>
+    </div>
+    <div class="live-block">
+      <!-- Date Picker Input -->
+      <input type="date" id="datePicker" class="date-input" onchange="loadData()">
+      
+      <div class="live-pill off" id="livePill">
+        <span class="dot"></span><span id="liveLabel">Connecting...</span>
+      </div>
+      <button id="refreshBtn" onclick="loadData()">Refresh now</button>
+    </div>
+  </header>
+
+  <div class="section-label">Temperature History (°C)</div>
+  <div class="grid">
+    <div class="chart-card" style="--card-accent:var(--t1)">
+      <div class="chart-card-head">
+        <div class="label">DS18B20 Temp 1</div>
+        <div><span class="val" id="chart_ds1">--</span><span class="unit"> °C</span></div>
+      </div>
+      <div class="chart-container"><canvas id="ds1Chart"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="--card-accent:var(--t2)">
+      <div class="chart-card-head">
+        <div class="label">DS18B20 Temp 2</div>
+        <div><span class="val" id="chart_ds2">--</span><span class="unit"> °C</span></div>
+      </div>
+      <div class="chart-container"><canvas id="ds2Chart"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="--card-accent:var(--t3)">
+      <div class="chart-card-head">
+        <div class="label">DHT11 Temp 1</div>
+        <div><span class="val" id="chart_dht1_t">--</span><span class="unit"> °C</span></div>
+      </div>
+      <div class="chart-container"><canvas id="dht1TChart"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="--card-accent:var(--t4)">
+      <div class="chart-card-head">
+        <div class="label">DHT11 Temp 2</div>
+        <div><span class="val" id="chart_dht2_t">--</span><span class="unit"> °C</span></div>
+      </div>
+      <div class="chart-container"><canvas id="dht2TChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label">Humidity History (%)</div>
+  <div class="grid">
+    <div class="chart-card" style="--card-accent:var(--h1)">
+      <div class="chart-card-head">
+        <div class="label">DHT11 Humidity 1</div>
+        <div><span class="val" id="chart_dht1_h">--</span><span class="unit"> %</span></div>
+      </div>
+      <div class="chart-container"><canvas id="dht1HChart"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="--card-accent:var(--h2)">
+      <div class="chart-card-head">
+        <div class="label">DHT11 Humidity 2</div>
+        <div><span class="val" id="chart_dht2_h">--</span><span class="unit"> %</span></div>
+      </div>
+      <div class="chart-container"><canvas id="dht2HChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Google Script Executable Deployment URL එක මෙතැනට ඇතුළත් කරන්න
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbyReaGAVbGoL4tO32kmhEuhlVpBMqRqLRl0LL1iuRciBbKDU6mtTRJlbd2xqMsCzZt5Eg/exec"; 
+const REFRESH_MS = 15000; // Auto update every 15 seconds
+
+let charts = {};
+
+function initChart(id, label, color) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: label,
+        data: [],
+        borderColor: color,
+        backgroundColor: color + '1A',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#E3E1DC' }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function setupCharts() {
+  charts.ds1 = initChart('ds1Chart', 'DS18B20 Temp 1', '#C4622D');
+  charts.ds2 = initChart('ds2Chart', 'DS18B20 Temp 2', '#2B6CB0');
+  charts.dht1_t = initChart('dht1TChart', 'DHT11 Temp 1', '#3E6259');
+  charts.dht2_t = initChart('dht2TChart', 'DHT11 Temp 2', '#D97706');
+  charts.dht1_h = initChart('dht1HChart', 'DHT11 Humidity 1', '#2563EB');
+  charts.dht2_h = initChart('dht2HChart', 'DHT11 Humidity 2', '#059669');
+}
+
+function updateChart(chart, labels, data) {
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = data;
+  chart.update();
+}
+
+async function loadData() {
+  const livePill = document.getElementById('livePill');
+  const liveLabel = document.getElementById('liveLabel');
+  const selectedDate = document.getElementById('datePicker').value;
+
+  try {
+    const response = await fetch(`${googleScriptURL}?date=${selectedDate}&t=${Date.now()}`);
+    if (!response.ok) throw new Error("HTTP Error " + response.status);
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+      livePill.className = "live-pill off";
+      liveLabel.textContent = "No data for date";
+      
+      // දත්ත නැති විට Card සහ Chart Clear කිරීම
+      document.getElementById('ds1_val').innerHTML = `--<span class="unit">°C</span>`;
+      document.getElementById('ds2_val').innerHTML = `--<span class="unit">°C</span>`;
+      document.getElementById('dht1_t_val').innerHTML = `--<span class="unit">°C</span>`;
+      document.getElementById('dht2_t_val').innerHTML = `--<span class="unit">°C</span>`;
+      document.getElementById('dht1_h_val').innerHTML = `--<span class="unit">%</span>`;
+      document.getElementById('dht2_h_val').innerHTML = `--<span class="unit">%</span>`;
+
+      document.getElementById('chart_ds1').textContent = '--';
+      document.getElementById('chart_ds2').textContent = '--';
+      document.getElementById('chart_dht1_t').textContent = '--';
+      document.getElementById('chart_dht2_t').textContent = '--';
+      document.getElementById('chart_dht1_h').textContent = '--';
+      document.getElementById('chart_dht2_h').textContent = '--';
+
+      updateChart(charts.ds1, [], []);
+      updateChart(charts.ds2, [], []);
+      updateChart(charts.dht1_t, [], []);
+      updateChart(charts.dht2_t, [], []);
+      updateChart(charts.dht1_h, [], []);
+      updateChart(charts.dht2_h, [], []);
+      return;
+    }
+
+    livePill.className = "live-pill on";
+    liveLabel.textContent = "Data Loaded";
+
+    // තෝරාගත් දිනයේ අවසාන අගය Cards සඳහා යෙදීම
+    const latest = data[data.length - 1];
+
+    document.getElementById('ds1_val').innerHTML = `${latest.ds1.toFixed(1)}<span class="unit">°C</span>`;
+    document.getElementById('ds2_val').innerHTML = `${latest.ds2.toFixed(1)}<span class="unit">°C</span>`;
+    document.getElementById('dht1_t_val').innerHTML = `${latest.dht1_t.toFixed(1)}<span class="unit">°C</span>`;
+    document.getElementById('dht2_t_val').innerHTML = `${latest.dht2_t.toFixed(1)}<span class="unit">°C</span>`;
+    
+    document.getElementById('dht1_h_val').innerHTML = `${latest.dht1_h.toFixed(0)}<span class="unit">%</span>`;
+    document.getElementById('dht2_h_val').innerHTML = `${latest.dht2_h.toFixed(0)}<span class="unit">%</span>`;
+
+    document.getElementById('humBar1').style.width = Math.min(100, Math.max(0, latest.dht1_h)) + '%';
+    document.getElementById('humBar2').style.width = Math.min(100, Math.max(0, latest.dht2_h)) + '%';
+
+    document.getElementById('chart_ds1').textContent = latest.ds1.toFixed(1);
+    document.getElementById('chart_ds2').textContent = latest.ds2.toFixed(1);
+    document.getElementById('chart_dht1_t').textContent = latest.dht1_t.toFixed(1);
+    document.getElementById('chart_dht2_t').textContent = latest.dht2_t.toFixed(1);
+    document.getElementById('chart_dht1_h').textContent = latest.dht1_h.toFixed(0);
+    document.getElementById('chart_dht2_h').textContent = latest.dht2_h.toFixed(0);
+
+    // Chart එකට Time Series දත්ත ඇතුළත් කිරීම
+    const times = data.map(r => r.time);
+    updateChart(charts.ds1, times, data.map(r => r.ds1));
+    updateChart(charts.ds2, times, data.map(r => r.ds2));
+    updateChart(charts.dht1_t, times, data.map(r => r.dht1_t));
+    updateChart(charts.dht2_t, times, data.map(r => r.dht2_t));
+    updateChart(charts.dht1_h, times, data.map(r => r.dht1_h));
+    updateChart(charts.dht2_h, times, data.map(r => r.dht2_h));
+
+    const now = new Date().toLocaleTimeString();
+    document.querySelectorAll('.last-updated').forEach(el => el.textContent = "Updated " + now);
+
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    livePill.className = "live-pill off";
+    liveLabel.textContent = "Error Loading";
+  }
+}
+
+// පිටුව Load වන විට Date Picker එකට අද දිනය ලබා දී Charts Initialize කිරීම
+window.onload = () => {
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('datePicker').value = todayStr;
+  
+  setupCharts();
+  loadData();
+  setInterval(loadData, REFRESH_MS);
+};
+</script>
+
+</body>
+</html>
