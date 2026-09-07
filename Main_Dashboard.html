@@ -58,7 +58,7 @@ body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--text);min-h
 .open-btn{position:absolute;bottom:18px;right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
 .main-card:hover .open-btn{background:#fff;color:#4f46e5;transform:rotate(45deg)}
 
-.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:22px;margin-bottom:22px}.chart-filter{grid-column:1/-1}
+.content-grid{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:22px}.chart-filter{grid-column:1/-1}
 .panel{background:#fff;border-radius:20px;padding:24px;box-shadow:0 8px 30px rgba(15,23,42,.06)}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .panel-header h2{font-size:19px}.panel-header span{font-size:12px;color:var(--muted)}
@@ -248,18 +248,7 @@ body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="chart-wrap"><canvas id="temperatureChart"></canvas></div>
     </div>
 
-    <div class="panel" id="reports">
-      <div class="panel-header">
-        <div><h2>Sensor Report</h2><span>Current status</span></div>
-        <i class="fa-solid fa-file-lines"></i>
-      </div>
-      <div class="report-list">
-        <div class="report-item"><div class="report-left"><div class="report-icon"><i class="fa-solid fa-database"></i></div><div><h4>Google Sheet</h4><small id="sheetStatus">Connecting...</small></div></div><i class="fa-solid fa-circle-check"></i></div>
-        <div class="report-item"><div class="report-left"><div class="report-icon"><i class="fa-solid fa-clock"></i></div><div><h4>Last Update</h4><small id="lastUpdate">--</small></div></div><i class="fa-solid fa-chevron-right"></i></div>
-        <div class="report-item"><div class="report-left"><div class="report-icon"><i class="fa-solid fa-temperature-high"></i></div><div><h4>Highest Temperature</h4><small id="highestTemp">--</small></div></div><i class="fa-solid fa-chevron-right"></i></div>
-        <div class="report-item"><div class="report-left"><div class="report-icon"><i class="fa-solid fa-droplet"></i></div><div><h4>Highest Humidity</h4><small id="highestHum">--</small></div></div><i class="fa-solid fa-chevron-right"></i></div>
-      </div>
-    </div>
+    
   </section>
 
   <section class="panel">
@@ -302,7 +291,8 @@ function setStatus(type,message){
   const dot=document.getElementById("statusDot");
   dot.className="status-dot "+type;
   document.getElementById("statusText").textContent=message;
-  document.getElementById("sheetStatus").textContent=message;
+  const sheetStatus=document.getElementById("sheetStatus");
+  if(sheetStatus) sheetStatus.textContent=message;
 }
 
 function numberValue(v){
@@ -359,12 +349,15 @@ function updateCards(row){
   for(let i=1;i<=4;i++) document.getElementById(`time${i}`).textContent=time;
   document.getElementById("humTime1").textContent=time;
   document.getElementById("humTime2").textContent=time;
-  document.getElementById("lastUpdate").textContent=time;
+  const lastUpdate=document.getElementById("lastUpdate");
+  if(lastUpdate) lastUpdate.textContent=time;
 
   const temps=[v.t1,v.t2,v.t3,v.t4].filter(x=>x!==null);
   const hums=[v.h1,v.h2].filter(x=>x!==null);
-  document.getElementById("highestTemp").textContent=temps.length?Math.max(...temps).toFixed(1)+" °C":"--";
-  document.getElementById("highestHum").textContent=hums.length?Math.max(...hums).toFixed(1)+" %":"--";
+  const highestTemp=document.getElementById("highestTemp");
+  if(highestTemp) highestTemp.textContent=temps.length?Math.max(...temps).toFixed(1)+" °C":"--";
+  const highestHum=document.getElementById("highestHum");
+  if(highestHum) highestHum.textContent=hums.length?Math.max(...hums).toFixed(1)+" %":"--";
 }
 
 function parseSheetDate(value){
@@ -415,7 +408,7 @@ function getChartLabel(row,index){
 }
 
 function drawCharts(rows){
-  const sliced=rows;
+  const sliced=Array.isArray(rows) ? rows : [];
 
   const labels=sliced.map((r,i)=>getChartLabel(r,i));
 
@@ -428,7 +421,8 @@ function drawCharts(rows){
     tension:.35,
     fill:false,
     spanGaps:true,
-    pointRadius: 0
+    pointRadius: 0,
+    pointHoverRadius: 6
   }));
 
   const humiditySets=[1,2].map(num=>({
@@ -440,7 +434,8 @@ function drawCharts(rows){
     tension:.35,
     fill:false,
     spanGaps:true,
-    pointRadius: 0
+    pointRadius: 0,
+    pointHoverRadius: 6
   }));
 
   if(temperatureChart) temperatureChart.destroy();
